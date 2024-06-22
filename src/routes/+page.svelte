@@ -1,9 +1,16 @@
 <script lang="ts">
-    import uppyClient, { convertToUppyFiles } from '$lib/uppyClient.js';
+    import getUppyClient, { convertToUppyFiles } from '$lib/uppyClient.js';
     import { formatBytes } from '$lib/utils.js';
     import { FileButton } from '@skeletonlabs/skeleton';
     import type { UploadResult } from '@uppy/core';
-    import type { FileDetails } from '$lib/types';
+    import type { FileDetails, UploadOptions } from '$lib/types';
+    import AdvancedOptions from '$lib/components/AdvancedOptions.svelte';
+
+    let uppyClient = getUppyClient(true);
+
+    let options: UploadOptions = {
+        chunkSizeMb: 10
+    };
 
     let files: FileList;
 
@@ -14,8 +21,10 @@
     let previousTime = 0;
     let uploadSpeed = 0;
 
-    async function uploadFile(files: FileList, chunkSize: number = 1024 * 1024 * 2) {
+    async function uploadFile(files: FileList, chunkSizeMb: number = 10) {
         if (!files.length) return;
+
+        uppyClient = getUppyClient(true, chunkSizeMb);
 
         uppyClient.addFiles(convertToUppyFiles(files));
 
@@ -44,19 +53,11 @@
         await uppyClient.upload();
     }
 
-    function getFileDetails(file: FileList): FileDetails[];
-    function getFileDetails(file: File): FileDetails;
-    function getFileDetails(file: File | FileList) {
-        if (file instanceof FileList) {
-            return Array.from(file).map(getFileDetails);
-        }
+    function cancelAll() {
+        uppyClient.cancelAll({ reason: 'user' });
 
-        return {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified
-        };
+        uploadProgress = 0;
+        uploadSpeed = 0;
     }
 </script>
 
@@ -64,9 +65,11 @@
     <div class="flex gap-2">
         <FileButton name="files" multiple bind:files />
         <button class="btn variant-filled" on:click={() => uploadFile(files)}>Upload</button>
-        <button class="btn variant-filled-error" on:click={() => uppyClient.cancelAll()}>
-            Abort
-        </button>
+        <button class="btn variant-filled-error" on:click={() => cancelAll()}>Abort</button>
+    </div>
+
+    <div class="w-[200px] shrink-0 basis-auto">
+        <AdvancedOptions bind:options />
     </div>
 
     <div>
@@ -77,8 +80,6 @@
                     Array.from(files).reduce((acc, file) => acc + file.size, 0)
                 )}
             </p>
-            <!--file info-->
-            <!--			<pre class="pre">{JSON.stringify(getFileDetails(files))}</pre>-->
         {:else}
             No files selected
         {/if}

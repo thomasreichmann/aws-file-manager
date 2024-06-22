@@ -4,3 +4,7 @@ export interface FileDetails {
     type: string;
     lastModified: number;
 }
+
+export interface UploadOptions {
+    chunkSizeMb: number;
+}
