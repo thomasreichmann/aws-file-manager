@@ -9,16 +9,10 @@
 	<AccordionItem>
 		<svelte:fragment slot="summary">Advanced options</svelte:fragment>
 		<svelte:fragment slot="content">
-			<div class="space-y-4">
-				<span class="text-sm">Chunk Size</span>
+			<form class="space-y-4">
+				<span class="text-sm">Chunk Size (mb)</span>
 				<input class="input" bind:value={options.chunkSizeMb} />
-				<!--                <input-->
-				<!--                    name="adapter-select"-->
-				<!--                    id="adapter-select"-->
-				<!--                    class="input-primary"-->
-				<!--                    bind:value={options.chunkSize}-->
-				<!--                />-->
-			</div>
+			</form>
 		</svelte:fragment>
 	</AccordionItem>
 </Accordion>

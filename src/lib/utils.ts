@@ -13,6 +13,47 @@ export const formatBytes = (bytes: number, decimals = 2) => {
 	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
+export const formatTime = (seconds: number) => {
+	if (!+seconds) return '0s';
+
+	const units = [
+		{ unit: 'y', seconds: 365 * 24 * 60 * 60 },
+		{ unit: 'w', seconds: 7 * 24 * 60 * 60 },
+		{ unit: 'd', seconds: 24 * 60 * 60 },
+		{ unit: 'h', seconds: 60 * 60 },
+		{ unit: 'm', seconds: 60 },
+		{ unit: 's', seconds: 1 }
+	];
+
+	let remainingSeconds = seconds;
+	const result = [];
+
+	for (let i = 0; i < units.length; i++) {
+		if (remainingSeconds >= units[i].seconds) {
+			const value = Math.floor(remainingSeconds / units[i].seconds);
+			remainingSeconds %= units[i].seconds;
+			result.push(`${value}${units[i].unit}`);
+		}
+	}
+
+	return result.join(' ');
+};
+
+// Helper function for detailed time formatting (e.g., HH:MM:SS)
+export const formatDetailedTime = (seconds: number) => {
+	const hours = Math.floor(seconds / 3600);
+	const minutes = Math.floor((seconds % 3600) / 60);
+	const secs = seconds % 60;
+
+	if (hours > 0) {
+		return `${hours}:${minutes.toString().padStart(2, '0')}h`;
+	} else if (minutes > 0) {
+		return `${minutes}:${secs.toString().padStart(2, '0')}m`;
+	} else {
+		return `${secs}s`;
+	}
+};
+
 export function getFileDetails(file: FileList): FileDetails[];
 export function getFileDetails(file: File): FileDetails;
 export function getFileDetails(file: File | FileList) {
