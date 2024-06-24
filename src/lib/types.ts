@@ -7,4 +7,21 @@ export interface FileDetails {
 
 export interface UploadOptions {
 	chunkSizeMb: number;
+	uploadSpeedHistorySize: number;
+}
+
+export interface UploadStatus {
+	loading: boolean;
+
+	uploading: boolean;
+	uploadProgress: number;
+
+	uploadSpeed: number;
+	averageUploadSpeed: number;
+	uploadSpeedHistory: number[];
+
+	estimatedTimeRemainingSeconds: number;
+
+	previousUploadedBytes: number;
+	previousTime: number;
 }
