@@ -36,7 +36,7 @@
 			modalStore.trigger(getFileEditModal(event.detail));
 		}}
 		on:close={(event) => {
-			triggerConfirmActionModal('Delete File', () =>
+			triggerConfirmActionModal(modalStore, 'Delete File', () =>
 				console.log(`Delete file: ${event.detail.Key}`)
 			);
 		}}

@@ -20,7 +20,7 @@
 
 	const onSubmit = async () => {
 		// Trigger confirm modal on top of current one
-		triggerConfirmActionModal('Update File', async () => {
+		triggerConfirmActionModal(modalStore, 'Update File', async () => {
 			// Call API to update file
 			modalStore.close();
 		});

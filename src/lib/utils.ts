@@ -1,6 +1,6 @@
 // place files you want to import through the `$lib` alias in this folder.
 import type { FileDetails } from '$lib/types';
-import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+import { getModalStore, type ModalSettings, type ModalStore } from '@skeletonlabs/skeleton';
 
 export const formatBytes = (bytes: number, decimals = 2) => {
 	if (!+bytes) return '0 Bytes';
@@ -86,11 +86,11 @@ export const getConfirmActionModal = (
 };
 
 export const triggerConfirmActionModal = (
+	modalStore: ModalStore,
 	action: string,
 	onConfirm: () => void,
 	message?: string
 ) => {
-	const modalStore = getModalStore();
 	const modal = getConfirmActionModal(action, onConfirm, message);
 
 	modalStore.update((state) => [modal, ...state]);
