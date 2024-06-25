@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import type { _Object } from '@aws-sdk/client-s3';
 	import ItemList from '$lib/components/ItemList.svelte';
+	import { fade } from 'svelte/transition';
 
 	let response: _Object[] | undefined = [];
 	export let loading = true;
@@ -14,5 +15,5 @@
 </script>
 
 {#if !loading}
-	<ItemList items={response ?? []}></ItemList>
+	<ItemList items={response ?? []} on:edit={(file) => {}}></ItemList>
 {/if}

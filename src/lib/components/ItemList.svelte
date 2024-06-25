@@ -10,8 +10,12 @@
 
 	const dispatch = createEventDispatcher();
 
-	const onClose = (upload: _Object) => {
-		dispatch('close', upload);
+	const onClose = (obj: _Object) => {
+		dispatch('close', obj);
+	};
+
+	const onEdit = (obj: _Object) => {
+		dispatch('edit', obj);
 	};
 
 	// Placeholder function to extract metadata from item.Key
@@ -34,11 +38,15 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[75vw] p-0">
 	{#each items as item}
-		<div class="card bg-primary-500">
+		<div class="card bg-primary-500 flex flex-col justify-between">
 			<div class="card-header flex justify-between items-start">
 				<h3 class="text-lg font-bold">{item.Key}</h3>
 				<div class="flex space-x-2">
-					<IconButton on:click={() => {}}>
+					<IconButton
+						on:click={() => {
+							onEdit(item);
+						}}
+					>
 						<EditIcon />
 					</IconButton>
 					<IconButton
@@ -52,13 +60,9 @@
 			</div>
 			<section class="p-4">
 				<p><strong>Uploader:</strong> {getMetadata(item).uploader}</p>
-				<p><strong>Uploaded At:</strong> {getMetadata(item).uploadedAt}</p>
+				<p><strong>Uploaded At:</strong> {getMetadata(item).uploadedAt} (UTC-0)</p>
 				<p><strong>Storage Category:</strong> {getMetadata(item).storageCategory}</p>
 			</section>
 		</div>
 	{/each}
 </div>
-
-<style>
-	/* Additional styling if necessary */
-</style>
