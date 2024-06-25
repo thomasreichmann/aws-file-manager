@@ -16,13 +16,22 @@
 		loading = false;
 	});
 
+	const deleteFile = (file: _Object) => {
+		console.log(`Delete file: ${file.Key}`);
+	};
+
+	const updateFile = (file: _Object) => {
+		console.log(`Update file: ${file.Key}`);
+	};
+
 	const getFileEditModal = (file: _Object): ModalSettings => {
 		return {
 			type: 'component',
 			component: {
 				ref: FileEditModal,
 				props: { file }
-			}
+			},
+			response: (r) => updateFile(r)
 		};
 	};
 
@@ -36,9 +45,7 @@
 			modalStore.trigger(getFileEditModal(event.detail));
 		}}
 		on:close={(event) => {
-			triggerConfirmActionModal(modalStore, 'Delete File', () =>
-				console.log(`Delete file: ${event.detail.Key}`)
-			);
+			triggerConfirmActionModal(modalStore, 'Delete File', () => deleteFile(event.detail));
 		}}
 	></ItemList>
 {/if}

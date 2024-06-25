@@ -22,6 +22,7 @@
 		// Trigger confirm modal on top of current one
 		triggerConfirmActionModal(modalStore, 'Update File', async () => {
 			// Call API to update file
+			if ($modalStore[1].response) $modalStore[1].response(file);
 			modalStore.close();
 		});
 	};
