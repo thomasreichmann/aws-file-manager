@@ -6,7 +6,8 @@ import {
 	GetObjectCommand,
 	UploadPartCommand,
 	CompleteMultipartUploadCommand,
-	AbortMultipartUploadCommand
+	AbortMultipartUploadCommand,
+	type CreateMultipartUploadCommandOutput
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -93,13 +94,13 @@ export const DELETE: RequestHandler = async ({ url }) => {
 		return new Response('Missing required query parameters', { status: 400 });
 	}
 
-	// const abortMultipartUploadCommand = new AbortMultipartUploadCommand({
-	// 	Bucket: AWS_BUCKET_NAME,
-	// 	Key: key,
-	// 	UploadId: uploadId
-	// });
-	//
-	// await s3Client.send(abortMultipartUploadCommand);
+	const abortMultipartUploadCommand = new AbortMultipartUploadCommand({
+		Bucket: AWS_BUCKET_NAME,
+		Key: key,
+		UploadId: uploadId
+	});
+
+	let response = await s3Client.send(abortMultipartUploadCommand);
 
 	return new Response('Multipart upload aborted successfully');
 };

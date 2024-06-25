@@ -24,4 +24,9 @@ export interface UploadStatus {
 
 	previousUploadedBytes: number;
 	previousTime: number;
+
+	totalBytes: number;
+
+	partsSigned: number;
+	totalParts: number;
 }

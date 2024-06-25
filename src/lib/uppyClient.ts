@@ -1,22 +1,16 @@
 import AwsS3Multipart, { type AwsS3UploadParameters } from '@uppy/aws-s3-multipart';
 import Uppy, { type AddFileOptions, type IndexedObject, type UppyFile } from '@uppy/core';
+import { writable, type Writable } from 'svelte/store';
+import type { UploadStatus } from '$lib/types';
 
 const DEFAULT_CHUNK_SIZE_MB = 5;
 
 let uppyClient: Uppy;
 
-const getUppyClient = (
-	forceRecreate: boolean = false,
-	chunkSize: number = DEFAULT_CHUNK_SIZE_MB
-) => {
-	if (forceRecreate || !uppyClient) {
-		uppyClient = createUppyClient(chunkSize);
-	}
-
-	return uppyClient;
-};
-
-export const createUppyClient = (chunkSize: number = DEFAULT_CHUNK_SIZE_MB * 1024 * 1024) =>
+export const createUppyClient = (
+	chunkSizeMb: number = DEFAULT_CHUNK_SIZE_MB * 1024 * 1024,
+	store: Writable<UploadStatus>
+) =>
 	new Uppy().use(AwsS3Multipart, {
 		abortMultipartUpload: (file, opts) => {
 			const { uploadId } = opts;
@@ -28,23 +22,30 @@ export const createUppyClient = (chunkSize: number = DEFAULT_CHUNK_SIZE_MB * 102
 			const { uploadId, key } = opts;
 			return fetch(`/api/upload/parts?uploadId=${uploadId}&key=${key}`).then((r) => r.json());
 		},
-		getChunkSize: (file) => chunkSize,
+		getChunkSize: (file) => chunkSizeMb * 1024 * 1024,
 		createMultipartUpload: async (file) => {
 			const response = await fetch('/api/upload/presign', {
 				method: 'POST',
 				body: JSON.stringify({ filename: file.name })
 			});
 
+			store.update((status) => {
+				status.totalParts = Math.ceil(file.size / (chunkSizeMb * 1024 * 1024));
+				status.totalBytes = file.size;
+				return status;
+			});
+
 			return (await response.clone().json()) as unknown as { uploadId: string; key: string };
 		},
-		signPart: async (
-			file: any,
-			opts: { partNumber: any; uploadId: any }
-		): Promise<AwsS3UploadParameters> => {
-			const { partNumber, uploadId } = opts;
+		signPart: async (file, { partNumber, uploadId }): Promise<AwsS3UploadParameters> => {
 			const response = await fetch(
 				`/api/upload/presign?filename=${file.name}&uploadId=${uploadId}&partNumber=${partNumber}`
 			);
+
+			store.update((status) => {
+				status.partsSigned++;
+				return status;
+			});
 
 			return { url: await response.text() };
 		},
@@ -62,8 +63,6 @@ export const createUppyClient = (chunkSize: number = DEFAULT_CHUNK_SIZE_MB * 102
 		},
 		shouldUseMultipart: true
 	});
-
-export default getUppyClient;
 
 export const convertToUppyFile = (file: File): AddFileOptions => {
 	return {

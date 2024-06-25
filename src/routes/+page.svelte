@@ -8,23 +8,19 @@
 	import UploadService from '$lib/services/uploadService';
 
 	let uploadService = new UploadService();
+	let { status } = uploadService;
 
 	let files: FileList;
 
-	async function uploadFile(files: FileList) {
-		if (!files.length) return;
+	async function uploadFile(fileList: FileList) {
+		if (!fileList.length) return;
 
 		let uppyClient = uploadService.getUppyClient(true);
 
-		uppyClient.addFiles(convertToUppyFiles(files));
+		uppyClient.addFiles(convertToUppyFiles(fileList));
 
-		try {
-			await uppyClient.upload();
-		} catch (error) {
-			console.error(error);
-		} finally {
-			loading = false;
-		}
+		files = undefined;
+		await uploadService.upload();
 	}
 
 	function cancelAll() {
@@ -36,25 +32,25 @@
 
 <main class="h-full w-full flex-col gap-6 flex items-center justify-center">
 	<div class="flex gap-2">
-		{#if uploadService.status.uploadProgress === 0 && !uploadService.status.loading}
+		{#if $status.uploadProgress === 0 && !$status.loading}
 			<FileButton name="files" multiple bind:files />
 		{/if}
-		{#if files && !uploadService.status.uploading}
+		{#if files && !$status.uploading}
 			<button
 				class="btn variant-filled"
 				on:click={() => uploadFile(files)}
-				disabled={uploadService.status.loading}
+				disabled={$status.loading}
 			>
 				Upload
 			</button>
 		{/if}
-		{#if uploadService.status.uploading}
+		{#if $status.uploading}
 			<button class="btn variant-filled-error" on:click={() => cancelAll()}>Abort</button>
 		{/if}
 	</div>
 
 	<div class="w-[200px] shrink-0 basis-auto">
-		<AdvancedOptions bind:uploadService.options />
+		<AdvancedOptions bind:options={uploadService.options} />
 	</div>
 
 	<div>
@@ -70,19 +66,25 @@
 		{/if}
 	</div>
 
-	<div class="flex flex-col gap-2">
-		{#if uploadService.status.uploading}
-			<p>Upload Progress: {uploadService.status.uploadProgress}%</p>
+	<div id="upload-status" class="flex flex-col gap-2">
+		{#if $status.uploading}
+			<p>Upload Progress: {$status.uploadProgress}%</p>
 		{/if}
 
-		{#if uploadService.status.uploading}
+		{#if $status.uploading}
 			<p>
-				Upload Speed: {formatBytes(uploadService.status.averageUploadSpeed)}/s
+				Upload Speed: {formatBytes($status.averageUploadSpeed)}/s
 			</p>
 			<p>
-				Estimated time remaining: {formatTime(
-					uploadService.status.estimatedTimeRemainingSeconds
+				Estimated time remaining: {formatTime($status.estimatedTimeRemainingSeconds)}
+			</p>
+			<p>
+				Total uploaded: {formatBytes($status.previousUploadedBytes)}/{formatBytes(
+					$status.totalBytes
 				)}
+			</p>
+			<p>
+				Parts signed: {$status.partsSigned}/{$status.totalParts}
 			</p>
 		{/if}
 
@@ -94,7 +96,7 @@
 	</div>
 </main>
 
-<div id="global-fetching-indicator-wrapper" class:visible={uploadService.status.loading}>
+<div id="global-fetching-indicator-wrapper" class:visible={$status.loading}>
 	<ProgressBar meter="bg-secondary-500" />
 </div>
 
