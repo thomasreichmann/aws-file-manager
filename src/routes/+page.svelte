@@ -6,14 +6,15 @@
 	import type { UploadOptions } from '$lib/types';
 	import AdvancedOptions from '$lib/components/AdvancedOptions.svelte';
 	import UploadService from '$lib/services/uploadService';
+	import FileManagement from '$lib/components/FileManagement.svelte';
 
 	let uploadService = new UploadService();
 	let { status } = uploadService;
 
-	let files: FileList;
+	let files: FileList | undefined;
 
-	async function uploadFile(fileList: FileList) {
-		if (!fileList.length) return;
+	async function uploadFile(fileList?: FileList) {
+		if (!fileList?.length) return;
 
 		let uppyClient = uploadService.getUppyClient(true);
 
@@ -94,6 +95,8 @@
 			</h1>
 		{/if}
 	</div>
+
+	<FileManagement />
 </main>
 
 <div id="global-fetching-indicator-wrapper" class:visible={$status.loading}>
