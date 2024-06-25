@@ -2,6 +2,7 @@
 	import { type _Object, ObjectStorageClass } from '@aws-sdk/client-s3';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
+	import { getConfirmActionModal } from '$lib/utils';
 
 	export let file: _Object;
 	let initialFile: _Object = {};
@@ -10,14 +11,21 @@
 		initialFile = { ...file };
 	});
 
-	const onClose = () => {
+	const modalStore = getModalStore();
+
+	const onCancel = () => {
 		file = { ...initialFile };
-		getModalStore().close();
+		modalStore.close();
 	};
 
 	const onSubmit = async () => {
-		// Update file
-		getModalStore().close();
+		// Trigger confirm modal on top of current one
+		modalStore.update((state) => [
+			getConfirmActionModal('Update File', async () => {
+				modalStore.close();
+			}),
+			...state
+		]);
 	};
 </script>
 
@@ -39,7 +47,7 @@
 	</form>
 
 	<footer class="modal-footer flex gap-4">
-		<button class="btn variant-filled-error" on:click={onClose}>Cancel</button>
+		<button class="btn variant-filled-error" on:click={onCancel}>Cancel</button>
 		<button class="btn variant-filled-primary" on:click={onSubmit}>Update</button>
 	</footer>
 </div>

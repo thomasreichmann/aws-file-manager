@@ -1,5 +1,6 @@
 // place files you want to import through the `$lib` alias in this folder.
 import type { FileDetails } from '$lib/types';
+import type { ModalSettings } from '@skeletonlabs/skeleton';
 
 export const formatBytes = (bytes: number, decimals = 2) => {
 	if (!+bytes) return '0 Bytes';
@@ -68,3 +69,18 @@ export function getFileDetails(file: File | FileList) {
 		lastModified: file.lastModified
 	};
 }
+
+export const getConfirmActionModal = (
+	action: string,
+	onConfirm: () => void,
+	message?: string
+): ModalSettings => {
+	return {
+		type: 'confirm',
+		title: `Confirm Action`,
+		body: message || `Are you sure you want to perform the action: '${action}'?`,
+		response: (r) => {
+			if (r) onConfirm();
+		}
+	};
+};

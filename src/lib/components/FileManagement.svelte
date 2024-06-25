@@ -15,7 +15,7 @@
 		loading = false;
 	});
 
-	const getModal = (file: _Object): ModalSettings => {
+	const getFileEditModal = (file: _Object): ModalSettings => {
 		return {
 			type: 'component',
 			component: {
@@ -26,15 +26,13 @@
 	};
 
 	const modalStore = getModalStore();
-
-	// modalStore.trigger(modal);
 </script>
 
 {#if !loading}
 	<ItemList
 		items={response ?? []}
 		on:edit={(event) => {
-			modalStore.trigger(getModal(event.detail));
+			modalStore.trigger(getFileEditModal(event.detail));
 		}}
 	></ItemList>
 {/if}
