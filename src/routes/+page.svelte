@@ -13,6 +13,8 @@
 
 	let files: FileList | undefined;
 
+	let fileManagementLoading: boolean;
+
 	async function uploadFile(fileList?: FileList) {
 		if (!fileList?.length) return;
 
@@ -90,10 +92,13 @@
 		{/if}
 	</div>
 
-	<FileManagement />
+	<FileManagement bind:loading={fileManagementLoading} />
 </main>
 
-<div id="global-fetching-indicator-wrapper" class:visible={$status.loading}>
+<div
+	id="global-fetching-indicator-wrapper"
+	class:visible={$status.loading || fileManagementLoading}
+>
 	<ProgressBar meter="bg-secondary-500" />
 </div>
 
