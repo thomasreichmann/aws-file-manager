@@ -88,12 +88,6 @@
 				Parts signed: {$status.partsSigned}/{$status.totalParts}
 			</p>
 		{/if}
-
-		{#if uploadService.uploadResult}
-			<h1>
-				{JSON.stringify(uploadService.uploadResult, null, 2)}
-			</h1>
-		{/if}
 	</div>
 
 	<FileManagement />
