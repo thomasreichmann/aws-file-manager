@@ -5,6 +5,7 @@
 	import { fade } from 'svelte/transition';
 	import { getModalStore, type ModalComponent, type ModalSettings } from '@skeletonlabs/skeleton';
 	import FileEditModal from '$lib/components/modals/FileEditModal.svelte';
+	import { getConfirmActionModal, triggerConfirmActionModal } from '$lib/utils';
 
 	let response: _Object[] | undefined = [];
 	export let loading = true;
@@ -33,6 +34,11 @@
 		items={response ?? []}
 		on:edit={(event) => {
 			modalStore.trigger(getFileEditModal(event.detail));
+		}}
+		on:close={(event) => {
+			triggerConfirmActionModal('Delete File', () =>
+				console.log(`Delete file: ${event.detail.Key}`)
+			);
 		}}
 	></ItemList>
 {/if}
