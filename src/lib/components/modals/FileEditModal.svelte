@@ -2,8 +2,9 @@
 	import { type _Object, ObjectStorageClass } from '@aws-sdk/client-s3';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { getConfirmActionModal, triggerConfirmActionModal } from '$lib/utils';
+	import { triggerConfirmActionModal } from '$lib/utils';
 
+	export let parent;
 	export let file: _Object;
 	let initialFile: _Object = {};
 
@@ -22,7 +23,7 @@
 		// Trigger confirm modal on top of current one
 		triggerConfirmActionModal(modalStore, 'Update File', async () => {
 			// Call API to update file
-			if ($modalStore[1].response) $modalStore[1].response(file);
+			if ($modalStore[1].response) $modalStore[1].response({ file, initialFile });
 			modalStore.close();
 		});
 	};

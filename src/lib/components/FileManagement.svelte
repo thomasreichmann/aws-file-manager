@@ -7,21 +7,36 @@
 	import FileEditModal from '$lib/components/modals/FileEditModal.svelte';
 	import { getConfirmActionModal, triggerConfirmActionModal } from '$lib/utils';
 
-	let response: _Object[] | undefined = [];
+	let files: _Object[] = [];
 	export let loading = true;
 
 	onMount(async () => {
-		const res = await fetch('/api/files');
-		response = await res.json();
-		loading = false;
+		await getFiles();
 	});
 
-	const deleteFile = (file: _Object) => {
-		console.log(`Delete file: ${file.Key}`);
+	const getFiles = async () => {
+		const res = await fetch('/api/files');
+		files = await res.json();
+		loading = false;
 	};
 
-	const updateFile = (file: _Object) => {
-		console.log(`Update file: ${file.Key}`);
+	const deleteFile = async (file: _Object) => {
+		loading = true;
+		const res = await fetch(`/api/files?key=${file.Key}`, {
+			method: 'DELETE'
+		});
+
+		await getFiles();
+	};
+
+	const updateFile = async (file: _Object, originalFile: _Object) => {
+		loading = true;
+		const res = await fetch(`/api/files?key=${originalFile.Key}`, {
+			method: 'PUT',
+			body: JSON.stringify(file)
+		});
+
+		await getFiles();
 	};
 
 	const getFileEditModal = (file: _Object): ModalSettings => {
@@ -31,16 +46,16 @@
 				ref: FileEditModal,
 				props: { file }
 			},
-			response: (r) => updateFile(r)
+			response: (r) => updateFile(r.file, r.initialFile)
 		};
 	};
 
 	const modalStore = getModalStore();
 </script>
 
-{#if !loading}
+{#if !loading || files.length}
 	<ItemList
-		items={response ?? []}
+		items={files ?? []}
 		on:edit={(event) => {
 			modalStore.trigger(getFileEditModal(event.detail));
 		}}
