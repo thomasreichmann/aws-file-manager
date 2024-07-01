@@ -31,7 +31,7 @@
 
 <div class="card p-4 w-modal shadow-xl space-y-4">
 	<header class="text-2xl font-bold">Update file</header>
-	<form class="modal-form border border-surface-500 p-4 space-y-4 rounded-container-token">
+	<form class="modal-form space-y-4 rounded-container-token">
 		<label class="label">
 			<span>File name</span>
 			<input class="input" type="text" placeholder="Name" bind:value={file.Key} />
@@ -44,10 +44,10 @@
 				{/each}
 			</select>
 		</label>
-	</form>
 
-	<footer class="modal-footer flex gap-4">
-		<button class="btn variant-filled-error" on:click={onCancel}>Cancel</button>
-		<button class="btn variant-filled-primary" on:click={onSubmit}>Update</button>
-	</footer>
+		<footer class="modal-footer flex gap-4">
+			<button class="btn variant-filled-primary" on:click={onSubmit}>Update</button>
+			<button class="btn variant-filled-error" on:click={onCancel}>Cancel</button>
+		</footer>
+	</form>
 </div>

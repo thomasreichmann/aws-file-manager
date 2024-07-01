@@ -1,12 +1,14 @@
-import { createUppyClient } from '$lib/uppyClient';
+import { createUppyClient, type CreateUppyClientOptions } from '$lib/uppyClient';
 import type Uppy from '@uppy/core';
 import type { UploadResult } from '@uppy/core';
 import type { UploadOptions, UploadStatus } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
+import { Service } from '$lib/services/Service';
+import type { AwsS3UploadParameters } from '@uppy/aws-s3-multipart';
 
 const DEFAULT_CHUNK_SIZE_MB = 10;
 
-export default class UploadService {
+export default class UploadService extends Service {
 	private uppyClient: Uppy;
 
 	defaultChunkSizeMb: number;
@@ -20,6 +22,8 @@ export default class UploadService {
 		options: UploadOptions = UploadService.getDefaultOptions(),
 		defaultChunkSizeMb: number = DEFAULT_CHUNK_SIZE_MB
 	) {
+		super('/api/upload');
+
 		this.defaultChunkSizeMb = defaultChunkSizeMb;
 		this.options = options;
 
@@ -42,11 +46,61 @@ export default class UploadService {
 
 	getUppyClient(forceRecreate: boolean = false, chunkSize: number = this.defaultChunkSizeMb) {
 		if (forceRecreate || !this.uppyClient) {
-			this.uppyClient = createUppyClient(chunkSize, this.status);
+			this.uppyClient = createUppyClient(
+				this.status,
+				this.getCreateUppyClientOptions(chunkSize)
+			);
 			this.setupUploadEvents(this.uppyClient);
 		}
 
 		return this.uppyClient;
+	}
+
+	getCreateUppyClientOptions(chunkSizeMb: number): CreateUppyClientOptions {
+		return {
+			chunkSizeMb,
+			abortMultipartUpload: async (file, opts) => {
+				const { uploadId } = opts;
+				await fetch(`${this.baseURL}/presign?uploadId=${uploadId}&key=${opts.key}`, {
+					method: 'DELETE'
+				});
+			},
+			listParts: async (file, opts) => {
+				const { uploadId, key } = opts;
+				const response = await fetch(
+					`${this.baseURL}/parts?uploadId=${uploadId}&key=${key}`
+				);
+
+				return response.json();
+			},
+			getChunkSize: (file) => chunkSizeMb * 1024 * 1024,
+			createMultipartUpload: async (file) => {
+				const response = await fetch(`${this.baseURL}/presign`, {
+					method: 'POST',
+					body: JSON.stringify({ filename: file.name })
+				});
+
+				return response.json();
+			},
+			signPart: async (file, { partNumber, uploadId }): Promise<Response> => {
+				const response = await fetch(
+					`${this.baseURL}/presign?filename=${file.name}&uploadId=${uploadId}&partNumber=${partNumber}`
+				);
+
+				return response.json();
+			},
+			completeMultipartUpload: async (file, { uploadId, parts }) => {
+				const response = await fetch(`${this.baseURL}/presign`, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ uploadId, parts, filename: file.name })
+				});
+
+				return response.json();
+			}
+		};
 	}
 
 	private setupUploadEvents(uppyClient: Uppy) {

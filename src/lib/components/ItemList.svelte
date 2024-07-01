@@ -5,8 +5,9 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { _Object } from '@aws-sdk/client-s3';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
+	import type { Writable } from 'svelte/store';
 
-	export let items: _Object[];
+	export let items: Writable<_Object[]>;
 
 	const dispatch = createEventDispatcher();
 
@@ -37,7 +38,7 @@
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[75vw] p-0">
-	{#each items as item}
+	{#each $items as item}
 		<div class="card bg-primary-500 flex flex-col justify-between">
 			<div class="card-header flex justify-between items-start">
 				<h3 class="text-lg font-bold">{item.Key}</h3>

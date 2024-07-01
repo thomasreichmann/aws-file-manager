@@ -62,7 +62,7 @@ export const PUT: RequestHandler = async ({ request, url }) => {
 		}
 	}
 
-	return new Response(JSON.stringify(response.$metadata));
+	return new Response(JSON.stringify(response));
 };
 
 export const DELETE: RequestHandler = async ({ url }) => {

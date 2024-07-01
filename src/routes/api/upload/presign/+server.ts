@@ -15,6 +15,10 @@ import { AWS_ACCESS_KEY_SECRET, AWS_ACCESS_KEY_ID, AWS_BUCKET_NAME } from '$env/
 import s3Client from '$lib/s3';
 import type { AwsS3Part } from '@uppy/aws-s3-multipart';
 
+interface CreateMultipartUploadResponse {
+	uploadId: string;
+	key: string;
+}
 export const POST: RequestHandler = async ({ request }) => {
 	const { filename } = await request.json();
 
