@@ -48,4 +48,4 @@
 			loading = false;
 		});
 	}}
-></ItemList>
+/>

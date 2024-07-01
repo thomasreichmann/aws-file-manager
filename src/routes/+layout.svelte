@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppBar, AppShell, initializeStores, Modal } from '@skeletonlabs/skeleton';
+	import { AppBar, AppShell, initializeStores, Modal, Toast } from '@skeletonlabs/skeleton';
 
 	// Highlight JS
 	import hljs from 'highlight.js/lib/core';
@@ -28,6 +28,7 @@
 </script>
 
 <Modal />
+<Toast />
 <AppShell>
 	<slot />
 </AppShell>

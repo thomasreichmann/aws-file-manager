@@ -6,8 +6,11 @@
 	import type { _Object } from '@aws-sdk/client-s3';
 	import EditIcon from '$lib/components/icons/EditIcon.svelte';
 	import type { Writable } from 'svelte/store';
+	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { fileService } from '$lib/services/fileService';
 
 	export let items: Writable<_Object[]>;
+	let generatingLink = false;
 
 	const dispatch = createEventDispatcher();
 
@@ -35,6 +38,58 @@
 			storageCategory: item.StorageClass
 		};
 	};
+
+	const toastStore = getToastStore();
+	const onLink = async (item: _Object) => {
+		generatingLink = true;
+		const toastId = toastStore.trigger({
+			autohide: false,
+			hideDismiss: true,
+			message: `Generating download link...`
+		});
+
+		try {
+			const res = await fileService.fetchDownloadUrl(item);
+			if (res.status === 'error') {
+				toastStore.trigger({
+					message: `Error fetching download URL: ${res.error}`,
+					timeout: 3000,
+					background: 'variant-filled-error'
+				});
+			} else if (res.status === 'restore-in-progress') {
+				toastStore.trigger({
+					message: 'Deep Glacier file restoration is still in progress, try again later',
+					timeout: 3000,
+					background: 'variant-filled-secondary'
+				});
+			} else if (res.status === 'restore-initiated') {
+				toastStore.trigger({
+					message:
+						'Deep Glacier file restoration initiated, this might take a while, click this button again later to check restoration status',
+					timeout: 3000,
+					background: 'variant-filled-primary'
+				});
+			} else if (res.status === 'success') {
+				toastStore.trigger({
+					message: 'Download URL copied to your clipboard!',
+					timeout: 3000,
+					background: 'variant-filled-success'
+				});
+
+				await navigator.clipboard.writeText(res.url ?? 'something bad happened');
+			}
+
+			toastStore.close(toastId);
+		} catch (e: any) {
+			toastStore.trigger({
+				message: `Error fetching download URL: ${e.message}`,
+				timeout: 3000,
+				background: 'variant-filled-error'
+			});
+		} finally {
+			generatingLink = false;
+		}
+	};
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[75vw] p-0">
@@ -43,6 +98,14 @@
 			<div class="card-header flex justify-between items-start">
 				<h3 class="text-lg font-bold">{item.Key}</h3>
 				<div class="flex space-x-2">
+					<IconButton
+						on:click={() => {
+							onLink(item);
+						}}
+						disabled={generatingLink}
+					>
+						<LinkIcon />
+					</IconButton>
 					<IconButton
 						on:click={() => {
 							onEdit(item);

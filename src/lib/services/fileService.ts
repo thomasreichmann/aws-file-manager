@@ -6,11 +6,27 @@ import type {
 } from '@aws-sdk/client-s3';
 import { Service } from '$lib/services/Service';
 
+type DownloadUrlStatus = 'success' | 'restore-in-progress' | 'restore-initiated' | 'error';
+
 class FileService extends Service {
 	public fileStore: Writable<_Object[]> = writable([]);
 
 	constructor() {
 		super('/api/files');
+	}
+
+	public async fetchDownloadUrl(file: _Object): Promise<{
+		status: DownloadUrlStatus;
+		url?: string;
+		error?: string;
+		message?: string;
+	}> {
+		const fetchResponse = await fetch(`${this.baseURL.toString()}/${file.Key}`);
+		const res = await fetchResponse.json();
+
+		if (!fetchResponse.ok) return { status: 'error', message: res.message };
+
+		return { status: res.status, url: res.url };
 	}
 
 	public async fetchFiles(): Promise<_Object[]> {
