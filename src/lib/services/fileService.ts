@@ -34,8 +34,6 @@ class FileService extends Service {
 		const fetchedFiles = res as _Object[];
 
 		this.fileStore.set(fetchedFiles);
-		{
-		}
 		return fetchedFiles;
 	}
 

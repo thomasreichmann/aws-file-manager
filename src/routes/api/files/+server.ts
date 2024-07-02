@@ -38,7 +38,7 @@ export const PUT: RequestHandler = async ({ request, url }) => {
 
 	const command = new CopyObjectCommand({
 		Bucket: AWS_BUCKET_NAME,
-		CopySource: `${AWS_BUCKET_NAME}/${originalKey}`,
+		CopySource: encodeURIComponent(`${AWS_BUCKET_NAME}/${originalKey}`),
 		Key: file.Key,
 		StorageClass: file.StorageClass
 	});
