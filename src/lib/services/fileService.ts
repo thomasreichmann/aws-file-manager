@@ -34,11 +34,15 @@ class FileService extends Service {
 		const fetchedFiles = res as _Object[];
 
 		this.fileStore.set(fetchedFiles);
+		{
+		}
 		return fetchedFiles;
 	}
 
 	public async deleteFile(file: _Object): Promise<DeleteObjectCommandOutput> {
-		const res = await fetch(this.baseURL, {
+		const url = this.baseURL;
+		url.searchParams.append('key', file.Key!);
+		const res = await fetch(url, {
 			method: 'DELETE'
 		});
 

@@ -42,9 +42,9 @@
 		modalStore.trigger(getFileEditModal(event.detail));
 	}}
 	on:close={(event) => {
-		triggerConfirmActionModal(modalStore, 'Delete File', () => {
+		triggerConfirmActionModal(modalStore, 'Delete File', async () => {
 			loading = true;
-			fileService.deleteFile(event.detail);
+			await fileService.deleteFile(event.detail);
 			loading = false;
 		});
 	}}

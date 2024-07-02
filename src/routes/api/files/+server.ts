@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params }) => {
 
 	const response = await s3Client.send(command);
 
-	return new Response(JSON.stringify(response.Contents));
+	return new Response(JSON.stringify(response.Contents ?? []));
 };
 
 export const PUT: RequestHandler = async ({ request, url }) => {

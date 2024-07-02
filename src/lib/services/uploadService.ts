@@ -1,10 +1,11 @@
 import { createUppyClient, type CreateUppyClientOptions } from '$lib/uppyClient';
 import type Uppy from '@uppy/core';
 import type { UploadResult } from '@uppy/core';
-import type { UploadOptions, UploadStatus } from '$lib/types';
+import type { UploadOptions, UploadStatus, _StorageClass } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
 import { Service } from '$lib/services/Service';
 import type { AwsS3UploadParameters } from '@uppy/aws-s3-multipart';
+import { StorageClass } from '@aws-sdk/client-s3';
 
 const DEFAULT_CHUNK_SIZE_MB = 10;
 
@@ -17,6 +18,7 @@ export default class UploadService extends Service {
 
 	status: Writable<UploadStatus> = writable(UploadService.getDefaultUploadStatus());
 	uploadResult?: UploadResult;
+	private storageClass: _StorageClass | undefined;
 
 	constructor(
 		options: UploadOptions = UploadService.getDefaultOptions(),
@@ -36,7 +38,8 @@ export default class UploadService extends Service {
 			return status;
 		});
 
-		let result = await this.getUppyClient().upload();
+		const client = this.getUppyClient();
+		let result = await client.upload();
 
 		// clear the client after the upload is complete
 		this.uppyClient = this.getUppyClient(true);
@@ -48,7 +51,7 @@ export default class UploadService extends Service {
 		if (forceRecreate || !this.uppyClient) {
 			this.uppyClient = createUppyClient(
 				this.status,
-				this.getCreateUppyClientOptions(chunkSize)
+				this.getCreateUppyClientOptions(chunkSize, this.options.storageClass)
 			);
 			this.setupUploadEvents(this.uppyClient);
 		}
@@ -56,7 +59,10 @@ export default class UploadService extends Service {
 		return this.uppyClient;
 	}
 
-	getCreateUppyClientOptions(chunkSizeMb: number): CreateUppyClientOptions {
+	getCreateUppyClientOptions(
+		chunkSizeMb: number,
+		storageClass?: _StorageClass
+	): CreateUppyClientOptions {
 		return {
 			chunkSizeMb,
 			abortMultipartUpload: async (file, opts) => {
@@ -77,17 +83,17 @@ export default class UploadService extends Service {
 			createMultipartUpload: async (file) => {
 				const response = await fetch(`${this.baseURL}/presign`, {
 					method: 'POST',
-					body: JSON.stringify({ filename: file.name })
+					body: JSON.stringify({ filename: file.name, storageClass })
 				});
 
 				return response.json();
 			},
-			signPart: async (file, { partNumber, uploadId }): Promise<Response> => {
+			signPart: async (file, { partNumber, uploadId }): Promise<string> => {
 				const response = await fetch(
 					`${this.baseURL}/presign?filename=${file.name}&uploadId=${uploadId}&partNumber=${partNumber}`
 				);
 
-				return response.json();
+				return await response.text();
 			},
 			completeMultipartUpload: async (file, { uploadId, parts }) => {
 				const response = await fetch(`${this.baseURL}/presign`, {
@@ -156,6 +162,7 @@ export default class UploadService extends Service {
 		uppyClient.on('error', (error) => {
 			this.status.update((status) => {
 				status.uploading = false;
+				status.loading = false;
 				console.error('Upload error:', error);
 				// Add error message displaying
 				return status;
@@ -163,10 +170,20 @@ export default class UploadService extends Service {
 		});
 	}
 
+	static uploadService: UploadService;
+	public static getInstance() {
+		if (!UploadService.uploadService) {
+			UploadService.uploadService = new UploadService();
+		}
+
+		return UploadService.uploadService;
+	}
+
 	static getDefaultOptions(): UploadOptions {
 		return {
 			chunkSizeMb: DEFAULT_CHUNK_SIZE_MB,
-			uploadSpeedHistorySize: 100
+			uploadSpeedHistorySize: 100,
+			storageClass: 'STANDARD'
 		};
 	}
 

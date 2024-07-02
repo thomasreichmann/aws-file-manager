@@ -20,11 +20,12 @@ interface CreateMultipartUploadResponse {
 	key: string;
 }
 export const POST: RequestHandler = async ({ request }) => {
-	const { filename } = await request.json();
+	const { filename, storageClass } = await request.json();
 
 	const createMultipartUploadCommand = new CreateMultipartUploadCommand({
 		Bucket: AWS_BUCKET_NAME,
-		Key: filename
+		Key: filename,
+		StorageClass: storageClass ?? 'STANDARD'
 	});
 
 	const upload = await s3Client.send(createMultipartUploadCommand);
@@ -85,9 +86,9 @@ export const PUT: RequestHandler = async ({ request }) => {
 
 	const completeUploadResponse = await s3Client.send(completeMultipartUploadCommand);
 
-	console.log(completeUploadResponse);
-
-	return new Response(JSON.stringify({ message: 'Success' }));
+	return new Response(
+		JSON.stringify({ message: completeUploadResponse.$metadata.httpStatusCode })
+	);
 };
 
 export const DELETE: RequestHandler = async ({ url }) => {

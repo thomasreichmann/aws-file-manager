@@ -60,14 +60,14 @@ export const createUppyClient = (
 			return response;
 		},
 		signPart: async (file, opts): Promise<AwsS3UploadParameters> => {
-			const response = await options.signPart(file, opts);
+			const url = await options.signPart(file, opts);
 
 			statusStore.update((status) => {
 				status.partsSigned++;
 				return status;
 			});
 
-			return { url: await response.text() };
+			return { url };
 		}
 	});
 
